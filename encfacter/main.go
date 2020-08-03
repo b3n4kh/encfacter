@@ -16,7 +16,8 @@ type config struct {
 	URL string `json:"url"`
 }
 
-type facts struct {
+// Facts to be printed
+type Facts struct {
 	Hostgroup    string `json:"hostgroup"`
 	Environment  string `json:"environment"`
 	IsProduction bool   `json:"is_production"`
@@ -31,7 +32,7 @@ func loadConfig(configFile string) (config, error) {
 	return config, nil
 }
 
-func getEncFacts(url string) (facts facts, err error) {
+func getEncFacts(url string) (facts Facts, err error) {
 	httpclient := http.Client{
 		Timeout: time.Second * 2,
 	}
@@ -65,15 +66,15 @@ func getEncFacts(url string) (facts facts, err error) {
 	return
 }
 
-func enhanceFacts(facts *facts) {
-	if facts.Environment == "prodution" && strings.HasPrefix(facts.Hostgroup, "base/Produktion") {
+func enhanceFacts(facts *Facts) {
+	if facts.Environment == "production" && strings.HasPrefix(facts.Hostgroup, "base/Produktion") {
 		facts.IsProduction = true
 	} else {
 		facts.IsProduction = false
 	}
 }
 
-func writeCache(cacheFile string, facts facts) (err error) {
+func writeCache(cacheFile string, facts Facts) (err error) {
 	content, err := json.MarshalIndent(facts, "", "	")
 
 	err = ioutil.WriteFile(cacheFile, content, 0644)
@@ -88,14 +89,14 @@ func writeCache(cacheFile string, facts facts) (err error) {
 	return
 }
 
-func readCache(cacheFile string) (facts facts, err error) {
+func readCache(cacheFile string) (facts Facts, err error) {
 	content, err := ioutil.ReadFile(cacheFile)
 	json.Unmarshal(content, &facts)
 
 	return
 }
 
-func printFacts(facts facts) {
+func printFacts(facts Facts) {
 	json, err := json.MarshalIndent(facts, "", "	")
 	if err != nil {
 		log.Fatal("Could not print facts")
@@ -119,12 +120,13 @@ func main() {
 	if err != nil {
 		facts, err = readCache(cacheFile)
 		if err != nil {
-			log.Fatalf("Could not read cache %s: %v", cacheFile, err)
+			log.Printf("Could not read cache %s: %v", cacheFile, err)
+			facts = Facts{"undefined", "undefined", false}
 		}
 	} else {
 		err = writeCache(cacheFile, facts)
 		if err != nil {
-			log.Fatalf("Could not write cache %s: %v", cacheFile, err)
+			log.Printf("Could not write cache %s: %v", cacheFile, err)
 		}
 	}
 
