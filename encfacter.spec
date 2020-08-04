@@ -43,6 +43,5 @@ install -p -m 644 config.json %{buildroot}%{_sysconfdir}/%{name}
 
 %files
 %{_bindir}/%{name}
-%{_unitdir}/%{name}.service
 %config(noreplace) %{_sysconfdir}/%{name}/config.json
 
